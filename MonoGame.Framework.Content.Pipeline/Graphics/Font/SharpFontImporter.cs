@@ -148,13 +148,10 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
                 glyphBitmap = new PixelBitmapContent<byte>((int)gHA, (int)gVA);
             }
 
-            // not sure about this at all
             var abc = new ABCFloat();
             abc.A = (float)face.Glyph.Metrics.HorizontalBearingX;
             abc.B = (float)face.Glyph.Metrics.Width;
             abc.C = ((float)face.Glyph.Metrics.HorizontalAdvance) - (abc.A + abc.B);
-            abc.A -= face.Glyph.BitmapLeft;
-            abc.B += face.Glyph.BitmapLeft;
 
             // Construct the output Glyph object.
             return new GlyphData(glyphIndex, glyphBitmap)
