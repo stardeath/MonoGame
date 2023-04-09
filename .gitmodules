@@ -1,6 +1,7 @@
 [submodule "ThirdParty/Dependencies"]
 	path = ThirdParty/Dependencies
 	url = https://github.com/stardeath/MonoGame.Dependencies.git
+	branch = rx_master
 [submodule "ThirdParty/NVorbis"]
 	path = ThirdParty/NVorbis
 	url=https://github.com/NVorbis/NVorbis.git
