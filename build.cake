@@ -7,9 +7,11 @@
 //////////////////////////////////////////////////////////////////////
 
 var target = Argument("build-target", "Default");
-var version = Argument("build-version", EnvironmentVariable("BUILD_NUMBER") ?? "3.8.1.1");
+var version_main = "3.8.1";
+var version = Argument("build-version", EnvironmentVariable("BUILD_NUMBER") ?? version_main + ".1");
 var repositoryUrl = Argument("repository-url", "https://github.com/MonoGame/MonoGame");
 var configuration = Argument("build-configuration", "Release");
+var nugetUrl = "E:/nuget_local/";
 
 //////////////////////////////////////////////////////////////////////
 // PREPARATION
@@ -20,6 +22,8 @@ DotNetMSBuildSettings dnMsBuildSettings;
 DotNetBuildSettings dnBuildSettings;
 DotNetPackSettings dnPackSettings;
 DotNetPublishSettings dnPublishSettings;
+DotNetNuGetPushSettings dnNuGetPushSettings;
+DotNetNuGetDeleteSettings dnNuGetDeleteSettings;
 
 private void PackMSBuild(string filePath)
 {
@@ -34,6 +38,14 @@ private void PackDotnet(string filePath)
 private void PublishDotnet(string filePath)
 {
     DotNetPublish(filePath, dnPublishSettings);
+}
+private void NuGetPushDotNet(string filePath)
+{
+    DotNetNuGetPush(filePath, dnNuGetPushSettings);
+}
+private void NuGetDeleteDotNet(string packageName, string packageVersion)
+{
+    DotNetNuGetDelete(packageName, packageVersion, dnNuGetDeleteSettings);
 }
 
 private bool GetMSBuildWith(string requires)
@@ -133,6 +145,11 @@ Task("Prep")
     dnPublishSettings.Verbosity = DotNetVerbosity.Minimal;
     dnPublishSettings.Configuration = configuration;
     dnPublishSettings.SelfContained = false;
+    dnNuGetPushSettings = new DotNetNuGetPushSettings();
+    dnNuGetPushSettings.Source = nugetUrl;
+    dnNuGetDeleteSettings = new DotNetNuGetDeleteSettings();
+    dnNuGetDeleteSettings.Source = nugetUrl;
+    dnNuGetDeleteSettings.NonInteractive = true;
 });
 
 Task("BuildConsoleCheck")
@@ -315,6 +332,29 @@ Task("PackVSMacTemplates")
     DotNetBuild("Templates/MonoGame.Templates.VSMacExtension/MonoGame.Templates.VSMacExtension.csproj", dnBuildSettings);
 });
 
+Task("PushAll")
+    .IsDependentOn("Prep")
+    .WithCriteria(() => IsRunningOnWindows())
+    .Does(() =>
+{
+    NuGetDeleteDotNet("dotnet-mgcb", "3.8.1.1-develop");
+    NuGetPushDotNet("./Artifacts/NuGet/dotnet-mgcb.3.8.1.1-develop.nupkg");
+    NuGetDeleteDotNet("dotnet-mgcb-editor", "3.8.1.1-develop");
+    NuGetPushDotNet("./Artifacts/NuGet/dotnet-mgcb-editor.3.8.1.1-develop.nupkg");
+    NuGetDeleteDotNet("dotnet-mgcb-editor-windows", "3.8.1.1-develop");
+    NuGetPushDotNet("./Artifacts/NuGet/dotnet-mgcb-editor-windows.3.8.1.1-develop.nupkg");
+    NuGetDeleteDotNet("dotnet-mgfxc", "3.8.1.1-develop");
+    NuGetPushDotNet("./Artifacts/NuGet/dotnet-mgfxc.3.8.1.1-develop.nupkg");
+    NuGetDeleteDotNet("MonoGame.Content.Builder.Task", "3.8.1.1-develop");
+    NuGetPushDotNet("./Artifacts/NuGet/MonoGame.Content.Builder.Task.3.8.1.1-develop.nupkg");
+    NuGetDeleteDotNet("MonoGame.Framework.Content.Pipeline", "3.8.1.1-develop");
+    NuGetPushDotNet("./Artifacts/NuGet/MonoGame.Framework.Content.Pipeline.3.8.1.1-develop.nupkg");
+    NuGetDeleteDotNet("MonoGame.Framework.DesktopGL", "3.8.1.1-develop");
+    NuGetPushDotNet("./Artifacts/NuGet/MonoGame.Framework.DesktopGL.3.8.1.1-develop.nupkg");
+    NuGetDeleteDotNet("MonoGame.Framework.WindowsDX", "3.8.1.1-develop");
+    NuGetPushDotNet("./Artifacts/NuGet/MonoGame.Framework.WindowsDX.3.8.1.1-develop.nupkg");
+    //NuGetPushDotNet("./Artifacts/NuGet/MonoGame.Extended.3.8.1.1-develop.nupkg");
+});
 //////////////////////////////////////////////////////////////////////
 // TASK TARGETS
 //////////////////////////////////////////////////////////////////////
@@ -337,6 +377,9 @@ Task("Pack")
     .IsDependentOn("PackDotNetTemplates")
     .IsDependentOn("PackVSMacTemplates")
     .IsDependentOn("PackVSTemplates");
+Task("Push")
+    .IsDependentOn("Pack")
+    .IsDependentOn("PushAll");
 
 Task("Test")
     .IsDependentOn("TestWindowsDX")
