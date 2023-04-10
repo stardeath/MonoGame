@@ -1,0 +1,2 @@
+Build and Upload nuget packages :
+- "dotnet cake --build-target Push" in Visual Studio Package Manager Console
