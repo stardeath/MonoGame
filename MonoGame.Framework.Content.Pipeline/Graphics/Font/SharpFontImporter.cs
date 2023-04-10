@@ -53,10 +53,10 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
                 Glyphs = glyphList;
 
                 // Store the font height.
-                LineSpacing = face.Size.Metrics.Height.Value >> 6;
+                LineSpacing = (float)face.Size.Metrics.Height;
 
                 // The height used to calculate the Y offset for each character.
-                YOffsetMin = -face.Size.Metrics.Ascender.Value >> 6;
+                YOffsetMin = -(int)face.Size.Metrics.Ascender;
             }
             finally
             {
@@ -78,7 +78,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
             {
                 const uint dpi = 96;
                 var face = lib.NewFace(fontName, 0);
-                var fixedSize = ((int)options.Size) << 6;
+                var fixedSize = ((int)options.Size);
                 face.SetCharSize(0, fixedSize, dpi, dpi);
 
                 if (face.FamilyName == "Microsoft Sans Serif" && options.FontName != "Microsoft Sans Serif")
@@ -139,29 +139,29 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
 
             if (glyphBitmap == null)
             {
-                var gHA = face.Glyph.Metrics.HorizontalAdvance.Value >> 6;
-                var gVA = face.Size.Metrics.Height.Value >> 6;
+                var gHA = face.Glyph.Metrics.HorizontalAdvance;
+                var gVA = face.Size.Metrics.Height;
 
                 gHA = gHA > 0 ? gHA : gVA;
                 gVA = gVA > 0 ? gVA : gHA;
 
-                glyphBitmap = new PixelBitmapContent<byte>(gHA, gVA);
+                glyphBitmap = new PixelBitmapContent<byte>((int)gHA, (int)gVA);
             }
 
             // not sure about this at all
             var abc = new ABCFloat();
-            abc.A = face.Glyph.Metrics.HorizontalBearingX.Value >> 6;
-            abc.B = face.Glyph.Metrics.Width.Value >> 6;
-            abc.C = (face.Glyph.Metrics.HorizontalAdvance.Value >> 6) - (abc.A + abc.B);
+            abc.A = (float)face.Glyph.Metrics.HorizontalBearingX;
+            abc.B = (float)face.Glyph.Metrics.Width;
+            abc.C = ((float)face.Glyph.Metrics.HorizontalAdvance) - (abc.A + abc.B);
             abc.A -= face.Glyph.BitmapLeft;
             abc.B += face.Glyph.BitmapLeft;
 
             // Construct the output Glyph object.
             return new GlyphData(glyphIndex, glyphBitmap)
             {
-                XOffset = -(face.Glyph.Advance.X.Value >> 6),
-                XAdvance = face.Glyph.Metrics.HorizontalAdvance.Value >> 6,
-                YOffset = -(face.Glyph.Metrics.HorizontalBearingY.Value >> 6),
+                XOffset = -((float)face.Glyph.Advance.X),
+                XAdvance = (float)face.Glyph.Metrics.HorizontalAdvance,
+                YOffset = -((float)face.Glyph.Metrics.HorizontalBearingY),
                 CharacterWidths = abc
             };
         }
